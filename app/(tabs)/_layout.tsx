@@ -4,14 +4,12 @@ import { View, StyleSheet, Animated, Vibration, TouchableOpacity } from 'react-n
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons'; // 使用图标库
 import COLORS from '../../constants/colors';
 import AddRecordModal from '../../components/AddRecordModal';
+import { useRecordStore } from '../../store/recordStore';
 
 
 export default function TabLayout() {
-
+  const { selectedDate, addRecord } = useRecordStore();
   const [modalVisible, setModalVisible] = useState(false);
-  useEffect(() => {
-    console.log("modalVisible changed:", modalVisible);
-}, [modalVisible]);
   return (
     <>
       <Tabs screenOptions={{
@@ -50,14 +48,23 @@ export default function TabLayout() {
         }} />
       </Tabs>
       <AddRecordModal
+        selectedDate={selectedDate}
+        onSubmit={(mood, timestamp) => {
+          addRecord({
+            timestamp,
+            mood,
+            id: Date.now().toString() // 使用时间戳作为唯一ID
+          });
+          setModalVisible(false);
+        }}
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
       />
       <View style={styles.addButtonContainer}>
         <TouchableOpacity
-        style={styles.touchable}
-        activeOpacity={0.7}
-        onPress={() => setModalVisible(true)}>
+          style={styles.touchable}
+          activeOpacity={0.7}
+          onPress={() => setModalVisible(true)}>
           <MaterialCommunityIcons name="plus-circle" size={70} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
