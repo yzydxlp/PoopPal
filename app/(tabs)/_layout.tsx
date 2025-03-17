@@ -1,45 +1,106 @@
+import React, { useRef, useEffect, useState } from 'react';
 import { Tabs } from 'expo-router';
-import React from 'react';
-import { Platform } from 'react-native';
+import { View, StyleSheet, Animated, Vibration, TouchableOpacity } from 'react-native';
+import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons'; // 使用图标库
+import COLORS from '../../constants/colors';
+import AddRecordModal from '../../components/AddRecordModal';
 
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
 
+  const [modalVisible, setModalVisible] = useState(false);
+  useEffect(() => {
+    console.log("modalVisible changed:", modalVisible);
+}, [modalVisible]);
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
+    <>
+      <Tabs screenOptions={{
+        headerTintColor: COLORS.primary,
+        headerStyle: {
+          backgroundColor: COLORS.bgMain,
+        },
+        tabBarStyle: styles.tabBar,
+        headerShadowVisible: false,
+        tabBarLabelStyle: {
+          display: 'none',
+        },
+        tabBarItemStyle: {
+          flex: 1, // 让每个 tab 项目均等分配空间
+          justifyContent: 'center', // 垂直居中
+          alignItems: 'center', // 水平居中
+          paddingVertical: 10,
+        },
       }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
+        <Tabs.Screen name="index" options={{
+          title: 'PoopPal',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'home' : 'home-outline'} color='white' size={24}
+              style={focused ? styles.focusedIcon : null}
+            />
+          ),
+        }} />
+        <Tabs.Screen name="calendar" options={{
+          title: '数据统计',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'reader' : 'reader-outline'} color='white' size={24}
+              style={focused ? styles.focusedIcon : null}
+            />
+
+          ),
+        }} />
+      </Tabs>
+      <AddRecordModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
       />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-    </Tabs>
+      <View style={styles.addButtonContainer}>
+        <TouchableOpacity
+        style={styles.touchable}
+        activeOpacity={0.7}
+        onPress={() => setModalVisible(true)}>
+          <MaterialCommunityIcons name="plus-circle" size={70} color={COLORS.primary} />
+        </TouchableOpacity>
+      </View>
+    </>
   );
 }
+const styles = StyleSheet.create({
+  focusedIcon: {
+    // 添加发光效果
+    textShadowColor: 'rgba(255, 255, 255, 0.7)', // 光亮色
+    textShadowOffset: { width: 0, height: 0 }, // 偏移
+    textShadowRadius: 10, // 发光半径
+  },
+  touchable: {
+    width: 70,
+    height: 70,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,  // 确保按钮在最上层
+  },
+  tabBar: {
+    backgroundColor: COLORS.primary, // 更改为与背景色不一样的颜色
+    borderTopWidth: 0,
+    width: '80%',  // 设置为屏幕宽度的80%
+    minWidth: 270,
+    marginHorizontal: '10%', // 添加边距确保其居中
+    borderRadius: 16,  // 圆角
+    height: 56,
+    position: 'absolute',
+    bottom: 8, // 移动到底部
+    alignSelf: 'center', // 水平居中
+    justifyContent: 'center', // 确保内容垂直居中
+    color: 'white'
+  },
+  addButtonContainer: {
+    position: 'absolute',
+    bottom: 15,  // 将加号抬高一点
+    alignSelf: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,  // 提升阴影效果
+    backgroundColor: COLORS.bgMain, // 底部按钮背景颜色，与整体保持一致
+    borderRadius: 35, // 圆形效果
+    overflow: 'hidden', // 确保按钮是圆的
+  },
+});
