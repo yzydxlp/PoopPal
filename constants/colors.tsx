@@ -8,6 +8,7 @@ export default {
   accentBlue: '#7ECBFF',
   accentYellow: '#FFDE72',
   accentPink: '#FFABC4',
+   accentRed: '#FF6B6B',
   bgMain: '#FFF9F5',
   bgCard: '#FFFFFF',
   bgCardHover: '#F8F4FF',

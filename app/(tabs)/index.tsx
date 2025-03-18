@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Text,
   View,
@@ -7,8 +7,6 @@ import {
   ScrollView,
   Image,
   SafeAreaView,
-  Platform,
-  StatusBar,
   Animated,
   Easing,
   Dimensions
@@ -20,14 +18,10 @@ import COLORS from '../../constants/colors';
 import { useRecordStore } from '../../store/recordStore';
 import {
   calendarData,
-  welcomeBannerData,
-  infoPanelData,
-  streakData,
-  historyData,
-  tipData,
   moodConfig,
   tips
 } from '../../constants/appData';
+import { haptics } from '../../utils/haptics';
 
 interface MarkedDates {
   [date: string]: {
@@ -50,12 +44,13 @@ export default function Index({ }) {
   const [visibleWelcomeBanner, setVisibleWelcomeBanner] = useState(true);
   const [animation] = useState(new Animated.Value(1)); // 初始值用于缩放动画
   const handleWelcomeBannerClose = () => {
+    haptics.light(); // 添加轻触反馈
     Animated.timing(animation, {
       toValue: 0,
       duration: 300,
       easing: Easing.ease,
       useNativeDriver: true,
-    }).start(() => setVisibleWelcomeBanner(false)); // 动画结束后将卡片隐藏
+    }).start(() => setVisibleWelcomeBanner(false));
   };
   const formatTime = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString('zh-CN', {
@@ -66,7 +61,7 @@ export default function Index({ }) {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTipIndex((prevIndex) => (prevIndex + 1) % tips.length);
-    }, 3000); // 每5秒切换一次
+    }, 5000); // 每5秒切换一次
 
     return () => clearInterval(timer);
   }, []);
@@ -152,9 +147,10 @@ export default function Index({ }) {
             theme={calendarData.theme}
             onDayPress={(day: { dateString: string }) => {
               if (day.dateString <= today) {
+                haptics.selection(); // 添加选择反馈
                 setSelectedDate(day.dateString);
               } else {
-                // 可以添加一个提示，告诉用户不能选择未来日期
+                haptics.warning(); // 添加警告反馈
                 alert('不可以预定拉屎哦💩');
               }
             }}
@@ -193,7 +189,7 @@ export default function Index({ }) {
                     {new Date(record.timestamp).toLocaleDateString()}
                   </Text>
                   <Text style={styles.historyTime}>
-                    {formatTime(record.timestamp)}
+                    {getTimeSlotLabel(record.timestamp)}
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -415,4 +411,13 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 });
+
+
+const getTimeSlotLabel = (timestamp: string) => {
+  const hour = new Date(timestamp).getHours();
+  const timeSlot = Math.floor(hour / 4);
+  const start = timeSlot * 4;
+  const end = (timeSlot + 1) * 4;
+  return `${start.toString().padStart(2, '0')}:00-${end.toString().padStart(2, '0')}:00`;
+};
 

@@ -5,6 +5,8 @@ import { MoodType, moodConfig } from '../constants/appData';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Picker } from '@react-native-picker/picker';
+import { haptics } from '../utils/haptics';
 
 interface AddRecordModalProps {
   visible: boolean;
@@ -14,20 +16,30 @@ interface AddRecordModalProps {
 }
 
 const AddRecordModal = ({ visible, onClose, selectedDate, onSubmit }: AddRecordModalProps) => {
-  const [time, setTime] = useState(new Date());
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<number | null>(null);
 
-  const handleTimeChange = (event: any, selectedTime: Date | undefined) => {
-    if (selectedTime) {
-      setTime(selectedTime);
-    }
+  const handleTimeSlotSelect = (slot: number) => {
+    haptics.selection(); // 使用选择反馈
+    setSelectedTimeSlot(slot);
   };
 
+  // 在点击心情按钮时
   const handleSubmit = (mood: MoodType) => {
-    // 合并选中的日期和时间
+    if (selectedTimeSlot === null) {
+      haptics.warning(); // 如果未选择时间，使用警告反馈
+      return;
+    }
+    haptics.success(); // 提交成功时使用确认反馈
     const selectedDateTime = new Date(selectedDate);
-    selectedDateTime.setHours(time.getHours());
-    selectedDateTime.setMinutes(time.getMinutes());
+    selectedDateTime.setHours(selectedTimeSlot * 4);
+    selectedDateTime.setMinutes(0);
     onSubmit(mood, selectedDateTime.toISOString());
+  };
+
+  const getTimeSlotLabel = (slot: number) => {
+    const start = slot * 4;
+    const end = (slot + 1) * 4;
+    return `${start.toString().padStart(2, '0')}:00-${end.toString().padStart(2, '0')}:00`;
   };
 
   return (
@@ -54,12 +66,26 @@ const AddRecordModal = ({ visible, onClose, selectedDate, onSubmit }: AddRecordM
             <Text style={styles.date}>{new Date(selectedDate).toLocaleDateString()}</Text>
 
             <View style={styles.timePickerContainer}>
-              <DateTimePicker
-                value={time}
-                mode="time"
-                is24Hour={true}
-                onChange={handleTimeChange}
-              />
+              <Text style={styles.timePickerTitle}>选择时间段</Text>
+              <View style={styles.timeSlotGrid}>
+                {Array.from({ length: 6 }, (_, i) => (
+                  <TouchableOpacity
+                    key={i}
+                    style={[
+                      styles.timeSlotButton,
+                      selectedTimeSlot === i && styles.timeSlotButtonSelected
+                    ]}
+                    onPress={() => handleTimeSlotSelect(i)}  // 使用新的处理函数
+                  >
+                    <Text style={[
+                      styles.timeSlotText,
+                      selectedTimeSlot === i && styles.timeSlotTextSelected
+                    ]}>
+                      {getTimeSlotLabel(i)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
 
             <View style={styles.moodContainer}>
@@ -137,6 +163,37 @@ const styles = StyleSheet.create({
   timePickerContainer: {
     width: '100%',
     marginBottom: 24,
+  },
+  timePickerTitle: {
+    fontSize: 16,
+    color: COLORS.textSecondary,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  timeSlotGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingHorizontal: 8,
+  },
+  timeSlotButton: {
+    width: '48%',
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  timeSlotButtonSelected: {
+    backgroundColor: COLORS.primary,
+  },
+  timeSlotText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+  },
+  timeSlotTextSelected: {
+    color: COLORS.bgCard, // 将 white 改为 bgCard
+    fontWeight: '600',
   },
 });
 

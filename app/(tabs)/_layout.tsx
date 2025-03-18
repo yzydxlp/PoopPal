@@ -1,6 +1,6 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Tabs } from 'expo-router';
-import { View, StyleSheet, Animated, Vibration, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons'; // 使用图标库
 import COLORS from '../../constants/colors';
 import AddRecordModal from '../../components/AddRecordModal';
@@ -37,13 +37,21 @@ export default function TabLayout() {
             />
           ),
         }} />
-        <Tabs.Screen name="calendar" options={{
-          title: '数据统计',
+        <Tabs.Screen name="analysis" options={{
+          title: '💩数据分析',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'reader' : 'reader-outline'} color='white' size={24}
               style={focused ? styles.focusedIcon : null}
             />
-
+          ),
+          headerRight: () => (
+            <Text style={{
+              color: COLORS.textSecondary,
+              marginRight: 16,
+              fontSize: 14,
+            }}>
+              了解你的排便习惯
+            </Text>
           ),
         }} />
       </Tabs>
