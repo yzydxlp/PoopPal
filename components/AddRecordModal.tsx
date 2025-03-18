@@ -3,6 +3,8 @@ import { Modal, View, Text, StyleSheet, TouchableOpacity, Platform } from 'react
 import COLORS from '../constants/colors';
 import { MoodType, moodConfig } from '../constants/appData';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface AddRecordModalProps {
   visible: boolean;
@@ -40,34 +42,43 @@ const AddRecordModal = ({ visible, onClose, selectedDate, onSubmit }: AddRecordM
         activeOpacity={1}
         onPress={onClose}
       >
-        <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
-          <Text style={styles.title}>今天心情如何？</Text>
-          <Text style={styles.date}>{new Date(selectedDate).toLocaleDateString()}</Text>
+        <LinearGradient
+          colors={[COLORS.primaryLight, COLORS.bgMain]}
+          style={styles.modalContent}
+        >
+          <View style={styles.modalContent} onStartShouldSetResponder={() => true}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="thumbs-up" size={50} color={COLORS.primary} />
+            </View>
+            <Text style={styles.title}>今天拉的怎么样？</Text>
+            <Text style={styles.date}>{new Date(selectedDate).toLocaleDateString()}</Text>
 
-          <View style={styles.timePickerContainer}>
-          <DateTimePicker
-              value={time}
-              mode="time"
-              is24Hour={true}
-              onChange={handleTimeChange}
-            />
-          </View>
+            <View style={styles.timePickerContainer}>
+              <DateTimePicker
+                value={time}
+                mode="time"
+                is24Hour={true}
+                onChange={handleTimeChange}
+              />
+            </View>
 
-          <View style={styles.moodContainer}>
-            {Object.entries(moodConfig).map(([mood, config]) => (
-              <TouchableOpacity
-                key={mood}
-                style={styles.moodButton}
-                onPress={() => handleSubmit(mood as MoodType)}
-              >
-                <Text style={styles.moodIcon}>{config.icon}</Text>
-                <Text style={styles.moodText}>
-                  {mood === MoodType.HAPPY ? '开心' : mood === MoodType.NORMAL ? '一般' : '不好'}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            <View style={styles.moodContainer}>
+              {Object.entries(moodConfig).map(([mood, config]) => (
+                <TouchableOpacity
+                  key={mood}
+                  style={styles.moodButton}
+                  onPress={() => handleSubmit(mood as MoodType)}
+                >
+                  <Text style={styles.moodIcon}>{config.icon}</Text>
+                  <Text style={styles.moodText}>
+                    {mood === MoodType.HAPPY ? '开心' : mood === MoodType.NORMAL ? '一般' : '不好'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
-        </View>
+        </LinearGradient>
+
       </TouchableOpacity>
     </Modal>
   );
@@ -80,11 +91,19 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    backgroundColor: COLORS.bgMain,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
     alignItems: 'center',
+  },
+  iconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   title: {
     fontSize: 24,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import {
   Text,
   View,
@@ -10,7 +10,8 @@ import {
   Platform,
   StatusBar,
   Animated,
-  Easing
+  Easing,
+  Dimensions
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
@@ -24,7 +25,8 @@ import {
   streakData,
   historyData,
   tipData,
-  moodConfig
+  moodConfig,
+  tips
 } from '../../constants/appData';
 
 interface MarkedDates {
@@ -44,6 +46,7 @@ export default function Index({ }) {
   const getSelectedDateRecords = () => {
     return records[selectedDate] || [];
   };
+  const [currentTipIndex, setCurrentTipIndex] = useState(0);
   const [visibleWelcomeBanner, setVisibleWelcomeBanner] = useState(true);
   const [animation] = useState(new Animated.Value(1)); // 初始值用于缩放动画
   const handleWelcomeBannerClose = () => {
@@ -60,6 +63,15 @@ export default function Index({ }) {
       minute: '2-digit'
     });
   };
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTipIndex((prevIndex) => (prevIndex + 1) % tips.length);
+    }, 3000); // 每5秒切换一次
+
+    return () => clearInterval(timer);
+  }, []);
+  const today = new Date().toISOString().split('T')[0];
+  const hasRecordToday = records[today]?.length > 0;
   const getMarkedDates = () => {
     const today = new Date().toISOString().split('T')[0];
     const markedDates: MarkedDates = {};
@@ -95,6 +107,11 @@ export default function Index({ }) {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.content}>
+      <Image
+          source={require('../../assets/images/girl-shit.jpg')}
+          style={styles.headerImage}
+          resizeMode="cover"
+        />
         {visibleWelcomeBanner && <Animated.View
           style={[
             styles.welcomeBanner,
@@ -113,7 +130,7 @@ export default function Index({ }) {
             style={styles.innerBanner}
           >
             <Text style={styles.welcomeTitle}>👏欢迎回来🎉</Text>
-            <Text style={styles.welcomeSubtitle}>你今天过得怎么样呀？😯</Text>
+            <Text style={styles.welcomeSubtitle}>你是来拉屎的吧？😯</Text>
             <Ionicons
               name="paw-sharp"
               size={80}
@@ -130,17 +147,26 @@ export default function Index({ }) {
         </Animated.View>
         }
         <View style={styles.calendarContainer}>
-          <Calendar
+        <Calendar
             markedDates={getMarkedDates()}
             theme={calendarData.theme}
-            onDayPress={(day: { dateString: string }) => setSelectedDate(day.dateString)}
+            onDayPress={(day: { dateString: string }) => {
+              if (day.dateString <= today) {
+                setSelectedDate(day.dateString);
+              } else {
+                // 可以添加一个提示，告诉用户不能选择未来日期
+                alert('不可以预定拉屎哦💩');
+              }
+            }}
+            maxDate={today}
           />
         </View>
 
-        <View style={styles.infoPanel}>
+        {!hasRecordToday && <View style={styles.infoPanel}>
           <Ionicons name="information-circle" size={24} color="white" style={styles.infoIcon} />
           <Text style={styles.infoPanelText}>You haven't recorded anything today yet.</Text>
-        </View>
+        </View>}
+
 
         <View style={styles.sectionHeader}>
           <MaterialIcons name="event-note" size={24} color={COLORS.primary} />
@@ -186,9 +212,11 @@ export default function Index({ }) {
         <View style={[styles.tipOfDay, { backgroundColor: COLORS.accentGreen }]}>
           <View style={styles.tipTitle}>
             <Ionicons name="bulb-outline" size={24} color="white" style={styles.tipTitleIcon} />
-            <Text style={styles.tipTitleText}>Tip of the Day</Text>
+            <Text style={styles.tipTitleText}>每日小贴士</Text>
           </View>
-          <Text style={styles.tipText}>Stay hydrated! Drinking enough water helps maintain regular bowel movements.</Text>
+          <Animated.Text style={styles.tipText}>
+            {tips[currentTipIndex]}
+          </Animated.Text>
         </View>
 
         {/* Bottom padding */}
@@ -206,6 +234,12 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 16,
+  },
+  headerImage: {
+    width: Dimensions.get('window').width - 32,
+    height: 200,
+    borderRadius: 16,
+    marginBottom: 16,
   },
   welcomeBanner: {
     borderRadius: 16,
@@ -373,6 +407,8 @@ const styles = StyleSheet.create({
   },
   tipText: {
     color: 'white',
+    fontSize: 16,
+    lineHeight: 22,
   },
   deleteButton: {
     padding: 8,
